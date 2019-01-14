@@ -91,6 +91,21 @@ func JWTData(curToken string) (jwt.MapClaims, error) {
 	}
 	return nil, errors.New("Token is not valid")
 }
+func GetDataJWT(wri http.ResponseWriter, req *http.Request) jwt.MapClaims {
+	resp := dbPkg.ResponseModel{Success: false, Data: nil, Message: "Cookie is not valid"}
+	cook := req.Header.Get("Authorization")
+	if len(cook) == 0 {
+		_ = json.NewEncoder(wri).Encode(resp)
+		return nil
+	}
+	jwtData, err := JWTData(cook)
+	if err != nil {
+		fmt.Println("Error when parsing JWT in CookieLoginHandler: " + err.Error())
+		_ = json.NewEncoder(wri).Encode(resp)
+		return nil
+	}
+	return jwtData
+}
 
 /*
 Private Key Generation

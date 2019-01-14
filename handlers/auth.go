@@ -24,6 +24,7 @@ func SignUpHandler(wri http.ResponseWriter, req *http.Request) {
 	}
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(tempUserData.Password), 10)
 	tempUserData.Password = string(passwordHash)
+	tempUserData.Role = "student"
 	err = dbConn.DB.Debug().Create(&tempUserData).Error
 
 	if err != nil {
@@ -119,18 +120,8 @@ func CookieLoginHandler(wri http.ResponseWriter, req *http.Request) {
 	SetCORS(&wri)
 	var userData dbPkg.Users
 	resp := dbPkg.ResponseModel{Success: false, Data: nil, Message: "Cookie is not valid"}
-	cook := req.Header.Get("Authorization")
-	if len(cook) == 0 {
-		_ = json.NewEncoder(wri).Encode(resp)
-		return
-	}
-	jwtData, err := JWTData(cook)
-	if err != nil {
-		fmt.Println("Error when parsing JWT in CookieLoginHandler: " + err.Error())
-		_ = json.NewEncoder(wri).Encode(resp)
-		return
-	}
-	err = dbConn.DB.Where("username = ?", jwtData["username"]).Find(&userData).Error
+	jwtData := GetDataJWT(wri, req)
+	err := dbConn.DB.Where("username = ?", jwtData["username"]).Find(&userData).Error
 	if err != nil {
 		fmt.Println("Error when reading user from DB in CookieLoginHandler: " + err.Error())
 		_ = json.NewEncoder(wri).Encode(resp)
