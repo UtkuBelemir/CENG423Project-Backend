@@ -5,7 +5,6 @@ import (
 	"crypto/rsa"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"io/ioutil"
 	"net/http"
@@ -86,7 +85,6 @@ func JWTData(curToken string) (jwt.MapClaims, error) {
 		return verifyKey, nil
 	})
 	if err == nil && usersToken.Valid {
-		fmt.Println(usersToken.Claims.(jwt.MapClaims))
 		return usersToken.Claims.(jwt.MapClaims), nil
 	}
 	return nil, errors.New("Token is not valid")
@@ -100,7 +98,6 @@ func GetDataJWT(wri http.ResponseWriter, req *http.Request) jwt.MapClaims {
 	}
 	jwtData, err := JWTData(cook)
 	if err != nil {
-		fmt.Println("Error when parsing JWT in CookieLoginHandler: " + err.Error())
 		_ = json.NewEncoder(wri).Encode(resp)
 		return nil
 	}

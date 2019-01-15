@@ -24,13 +24,14 @@ func GetAdvertisementsHandler(wri http.ResponseWriter, req *http.Request) {
 	}
 	jwtData := GetDataJWT(wri, req)
 	userName := jwtData["username"].(string)
+
 	if vars["dashboard"] == "1" && userName != "admin" {
-		err = dbConn.DB.Debug().Select("record_id,title,description,price,category,owner,type,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("status != 0 AND type = ? AND owner = ?", vars["type"], userName).Find(&tempAdvertisements).Error
+		err = dbConn.DB.Select("record_id,title,description,price,category,owner,type,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("status != 0 AND type = ? AND owner = ?", vars["type"], userName).Find(&tempAdvertisements).Error
 	} else {
 		if userName != "admin" {
-			err = dbConn.DB.Debug().Select("record_id,title,description,price,category,owner,type,status,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("type = ? AND status != 0", vars["type"]).Find(&tempAdvertisements).Error
+			err = dbConn.DB.Select("record_id,title,description,price,category,owner,type,status,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("type = ? AND status != 0", vars["type"]).Find(&tempAdvertisements).Error
 		} else {
-			err = dbConn.DB.Debug().Select("record_id,title,description,price,category,owner,type,status,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("type = ?", vars["type"]).Find(&tempAdvertisements).Error
+			err = dbConn.DB.Select("record_id,title,description,price,category,owner,type,status,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("type = ?", vars["type"]).Find(&tempAdvertisements).Error
 		}
 	}
 	if err != nil {
@@ -47,7 +48,7 @@ func GetAdvertisementImageHandler(wri http.ResponseWriter, req *http.Request) {
 	wri.Header().Set("Content-Type", "image/jpeg")
 	vars := mux.Vars(req)
 	var tempAdvertisement dbPkg.Advertisements
-	err := dbConn.DB.Debug().Select("image").Where("record_id = ?", vars["record_id"]).Find(&tempAdvertisement).Error
+	err := dbConn.DB.Select("image").Where("record_id = ?", vars["record_id"]).Find(&tempAdvertisement).Error
 	if err != nil {
 		fmt.Println("Error when reading image from DB in GetAdvertisementImageHandler. ", err.Error())
 		return
@@ -63,9 +64,9 @@ func GetAdvertisementHandler(wri http.ResponseWriter, req *http.Request) {
 	var err error
 	resp := dbPkg.ResponseModel{Success: false, Message: "Error when getting advertisement detail"}
 	if userName == "admin" {
-		err = dbConn.DB.Debug().Select("record_id,title,description,price,category,owner,type,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("record_id = ?", vars["record_id"]).Find(&tempAdvertisement).Error
+		err = dbConn.DB.Select("record_id,title,description,price,category,owner,type,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("record_id = ?", vars["record_id"]).Find(&tempAdvertisement).Error
 	} else {
-		err = dbConn.DB.Debug().Select("record_id,title,description,price,category,owner,type,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("record_id = ? and status != 0", vars["record_id"]).Find(&tempAdvertisement).Error
+		err = dbConn.DB.Select("record_id,title,description,price,category,owner,type,CASE WHEN image IS NOT NULL AND length(image) != 0 THEN 1 ELSE 0 END AS image").Where("record_id = ? and status != 0", vars["record_id"]).Find(&tempAdvertisement).Error
 	}
 
 	if err != nil {
@@ -87,7 +88,7 @@ func GetAdvertisementOwnerHandler(wri http.ResponseWriter, req *http.Request) {
 		_ = json.NewEncoder(wri).Encode(&resp)
 		return
 	}
-	err := dbConn.DB.Debug().Select("first_name,last_name,email").Where("username = ?", vars["owner"]).Find(&tempUser).Error
+	err := dbConn.DB.Select("first_name,last_name,email").Where("username = ?", vars["owner"]).Find(&tempUser).Error
 	if err != nil {
 		fmt.Println("Error when reading image from DB in GetAdvertisementOwnerHandler. ", err.Error())
 		_ = json.NewEncoder(wri).Encode(&resp)
@@ -129,7 +130,7 @@ func SaveAdvertisementHandler(wri http.ResponseWriter, req *http.Request) {
 		Type:        req.FormValue("type"),
 		Image:       fileBuffer.Bytes(),
 	}
-	err = dbConn.DB.Debug().Create(&tempAdvertisement).Error
+	err = dbConn.DB.Create(&tempAdvertisement).Error
 	if err != nil {
 		fmt.Println("Error when inserting advertisement to DB in SaveAdvertisementHandler: " + err.Error())
 		_ = json.NewEncoder(wri).Encode(&resp)
@@ -143,7 +144,7 @@ func DeleteAdvertisementHandler(wri http.ResponseWriter, req *http.Request) {
 	SetCORS(&wri)
 	vars := mux.Vars(req)
 	resp := dbPkg.ResponseModel{Success: false, Data: nil, Message: "Error when deleting advertisement"}
-	err := dbConn.DB.Debug().Where("record_id = ?", vars["record_id"]).Delete(dbPkg.Advertisements{}).Error
+	err := dbConn.DB.Where("record_id = ?", vars["record_id"]).Delete(dbPkg.Advertisements{}).Error
 	if err != nil {
 		_ = json.NewEncoder(wri).Encode(&resp)
 		return
@@ -169,7 +170,6 @@ func UpdateAdvertisementHandler(wri http.ResponseWriter, req *http.Request) {
 			omitColumns = "record_id,type,owner,image"
 		}
 	}
-	fmt.Println("FİLLEEEE", req.FormValue("status"))
 	tempPrice := req.FormValue("price")
 	if len(tempPrice) == 0 {
 		tempPrice = "0"
@@ -189,11 +189,11 @@ func UpdateAdvertisementHandler(wri http.ResponseWriter, req *http.Request) {
 		Price:       math.Round(price*100) / 100,
 		Image:       fileBuffer.Bytes(),
 	}
-	err = dbConn.DB.Model(&tempAdvertisement).Debug().Omit(omitColumns).Updates(&tempAdvertisement).Error
+	err = dbConn.DB.Model(&tempAdvertisement).Omit(omitColumns).Updates(&tempAdvertisement).Error
 	if len(req.FormValue("status")) != 0 {
 		status, errToInt := strconv.Atoi(req.FormValue("status"))
 		if errToInt == nil {
-			err = dbConn.DB.Model(&tempAdvertisement).Debug().Where("record_id = ?", tempAdvertisement.RecordId).UpdateColumn("status", status).Error
+			err = dbConn.DB.Model(&tempAdvertisement).Where("record_id = ?", tempAdvertisement.RecordId).UpdateColumn("status", status).Error
 		}
 	}
 	if err != nil {

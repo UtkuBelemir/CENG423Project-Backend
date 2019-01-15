@@ -25,7 +25,7 @@ func SignUpHandler(wri http.ResponseWriter, req *http.Request) {
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(tempUserData.Password), 10)
 	tempUserData.Password = string(passwordHash)
 	tempUserData.Role = "student"
-	err = dbConn.DB.Debug().Create(&tempUserData).Error
+	err = dbConn.DB.Create(&tempUserData).Error
 
 	if err != nil {
 		if strings.Contains(err.Error(), "duplicate") {
@@ -104,7 +104,7 @@ func RenewPasswordHandler(wri http.ResponseWriter, req *http.Request) {
 	}
 	passwordHash, _ := bcrypt.GenerateFromPassword([]byte(loginInfo.Password), 10)
 	userData.Password = string(passwordHash)
-	err = dbConn.DB.Debug().Save(&userData).Error
+	err = dbConn.DB.Save(&userData).Error
 	if err != nil {
 		fmt.Println("Error when updating user data from DB in RenewPasswordHandler : " + err.Error())
 		resp.Message = "Error when updating password"

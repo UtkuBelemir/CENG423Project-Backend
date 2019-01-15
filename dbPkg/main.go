@@ -1,7 +1,6 @@
 package dbPkg
 
 import (
-	"fmt"
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -19,10 +18,8 @@ var dbInstance *dbConnector
 
 func New() *dbConnector {
 	if dbInstance != nil && dbInstance.DB != nil {
-		fmt.Println("If worked")
 		return dbInstance
 	} else {
-		fmt.Println("Else worked")
 		dbInstance = new(dbConnector)
 
 		dbInstance.DB, err = gorm.Open("postgres", dbDialect)
